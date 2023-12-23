@@ -27,7 +27,7 @@ readonly MAIN_JS_PARAM
 sed -Ei \
 	-e 's/(["/]site\.css\?)[^"]*/\1'"$SITE_CSS_PARAM"'/g' \
 	-e 's/(["/]main\.css\?)[^"]*/\1'"$MAIN_CSS_PARAM"'/g' \
-	-e 's/(["/]main\.js\?)[^"]*/\1'"$MAIN_CSS_PARAM"'/g' \
+	-e 's/(["/]main\.js\?)[^"]*/\1'"$MAIN_JS_PARAM"'/g' \
 	./docs/index.html
 
 # 
