@@ -45,7 +45,8 @@
 
 						const width = media['original_info']['width'];
 						const height = media['original_info']['height'];
-						const durationInSeconds = media['video_info']['duration_millis'] / 1000;
+						const durationInMilliseconds = media['video_info']['duration_millis'] ?? 0;
+						const durationInSeconds = durationInMilliseconds / 1000;
 
 						// 
 						const variantsMP4 = media['video_info']['variants']
@@ -53,6 +54,7 @@
 
 						variantsMP4.sort((a, b) => b['bitrate'] - a['bitrate']);
 
+						// メモ: アニメーション GIF の場合は bitrate が 0 になる
 						const bitrate = variantsMP4[0]['bitrate'];
 						const url = variantsMP4[0]['url'];
 
@@ -60,8 +62,8 @@
 						if (
 							! Number.isInteger(width) || width <= 0
 							|| ! Number.isInteger(height) || height <= 0
-							|| ! isFinite(durationInSeconds) || durationInSeconds <= 0
-							|| ! isFinite(bitrate) || bitrate <= 0
+							|| ! isFinite(durationInSeconds) || durationInSeconds < 0
+							|| ! isFinite(bitrate) || bitrate < 0
 							|| typeof url !== 'string' || ! url
 						) {
 							throw new Error('Invalid media data');
@@ -131,8 +133,8 @@
 
 					const html = '<div>' +
 						`Original Size: ${width}x${height}<br>` +
-						`Duration: ${durationInSeconds}s<br>` +
-						`Bitrate: ${bitrate}<br>` +
+						(0 !== video.durationInSeconds ? `Duration: ${durationInSeconds}s<br>` : '') +
+						(0 !== video.bitrate ? `Bitrate: ${bitrate}<br>` : '') +
 						`<video src="${url}" controls><a href="${url}">MP4</a></video>` +
 						'</div>';
 
