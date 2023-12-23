@@ -19,15 +19,17 @@
 
 		const videoInfoElement = document.getElementById('video-info');
 
-		const getTweetInTweetDetail = tweetDetail => {
+		const getTweetsInTweetDetail = tweetDetail => {
 			try {
 				return tweetDetail.data.threaded_conversation_with_injections_v2.instructions
 					.filter(instruction => instruction.type === 'TimelineAddEntries')
 					.map(instruction => instruction.entries)
-					.flat()[0]
-					.content.itemContent.tweet_results.result.legacy;
+					.flat()
+					.filter(entry => entry.content.entryType === 'TimelineTimelineItem')
+					.filter(entry => entry.content.itemContent.itemType === 'TimelineTweet')
+					.map(entry => entry.content.itemContent.tweet_results.result.legacy);
 			} catch {
-				return;
+				return [];
 			}
 		};
 
@@ -45,7 +47,8 @@
 
 						const width = media['original_info']['width'];
 						const height = media['original_info']['height'];
-						const durationInSeconds = media['video_info']['duration_millis'] / 1000;
+						const durationInMilliseconds = media['video_info']['duration_millis'] ?? 0;
+						const durationInSeconds = durationInMilliseconds / 1000;
 
 						// 
 						const variantsMP4 = media['video_info']['variants']
@@ -53,6 +56,7 @@
 
 						variantsMP4.sort((a, b) => b['bitrate'] - a['bitrate']);
 
+						// メモ: アニメーション GIF の場合は bitrate が 0 になる
 						const bitrate = variantsMP4[0]['bitrate'];
 						const url = variantsMP4[0]['url'];
 
@@ -60,8 +64,8 @@
 						if (
 							! Number.isInteger(width) || width <= 0
 							|| ! Number.isInteger(height) || height <= 0
-							|| ! isFinite(durationInSeconds) || durationInSeconds <= 0
-							|| ! isFinite(bitrate) || bitrate <= 0
+							|| ! isFinite(durationInSeconds) || durationInSeconds < 0
+							|| ! isFinite(bitrate) || bitrate < 0
 							|| typeof url !== 'string' || ! url
 						) {
 							throw new Error('Invalid media data');
@@ -80,20 +84,19 @@
 				return videos;
 
 			} catch {
-				return;
+				return [];
 			}
 
 		};
 
 		const getVieosInTweetDetail = tweetDetail => {
 
-			const tweet = getTweetInTweetDetail(tweetDetail);
+			const tweets = getTweetsInTweetDetail(tweetDetail);
 
-			if ( typeof tweet === 'undefined' ) return;
-
-			if ( ! 'media' in tweet['entities'] ) return;
-
-			const videos = getVideosInTweet(tweet);
+			const videos = tweets
+				.filter(tweet => 'media' in tweet['entities'])
+				.map(tweet => getVideosInTweet(tweet))
+				.flat();
 
 			return videos;
 
@@ -131,8 +134,8 @@
 
 					const html = '<div>' +
 						`Original Size: ${width}x${height}<br>` +
-						`Duration: ${durationInSeconds}s<br>` +
-						`Bitrate: ${bitrate}<br>` +
+						(0 !== video.durationInSeconds ? `Duration: ${durationInSeconds}s<br>` : '') +
+						(0 !== video.bitrate ? `Bitrate: ${bitrate}<br>` : '') +
 						`<video src="${url}" controls><a href="${url}">MP4</a></video>` +
 						'</div>';
 
