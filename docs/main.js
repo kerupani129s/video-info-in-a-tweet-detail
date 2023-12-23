@@ -117,34 +117,33 @@
 			}
 
 			// 
-			const videos = getVieosInTweetDetail(tweetDetail) ?? [];
+			const videos = getVieosInTweetDetail(tweetDetail);
 
-			if ( videos.length !== 0 ) {
-
-				// 
-				videoInfoElement.innerHTML = '';
-
-				for (const video of videos) {
-
-					const width = escapeHTML(String(video.width));
-					const height = escapeHTML(String(video.height));
-					const durationInSeconds = escapeHTML(String(video.durationInSeconds));
-					const bitrate = escapeHTML(String(video.bitrate));
-					const url = escapeHTML(video.url);
-
-					const html = '<div>' +
-						`Original Size: ${width}x${height}<br>` +
-						(0 !== video.durationInSeconds ? `Duration: ${durationInSeconds}s<br>` : '') +
-						(0 !== video.bitrate ? `Bitrate: ${bitrate}<br>` : '') +
-						`<video src="${url}" controls><a href="${url}">MP4</a></video>` +
-						'</div>';
-
-					videoInfoElement.insertAdjacentHTML('beforeend', html);
-
-				}
-
-			} else {
+			if ( videos.length === 0 ) {
 				videoInfoElement.innerHTML = '<p>No data</p>';
+				return;
+			}
+
+			// 
+			videoInfoElement.innerHTML = '';
+
+			for (const video of videos) {
+
+				const width = escapeHTML(String(video.width));
+				const height = escapeHTML(String(video.height));
+				const durationInSeconds = escapeHTML(String(video.durationInSeconds));
+				const bitrate = escapeHTML(String(video.bitrate));
+				const url = escapeHTML(video.url);
+
+				const html = '<div>' +
+					`Original Size: ${width}x${height}<br>` +
+					(0 !== video.durationInSeconds ? `Duration: ${durationInSeconds}s<br>` : '') +
+					(0 !== video.bitrate ? `Bitrate: ${bitrate}<br>` : '') +
+					`<video src="${url}" controls><a href="${url}">MP4</a></video>` +
+					'</div>';
+
+				videoInfoElement.insertAdjacentHTML('beforeend', html);
+
 			}
 
 		};
