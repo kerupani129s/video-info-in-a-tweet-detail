@@ -19,15 +19,17 @@
 
 		const videoInfoElement = document.getElementById('video-info');
 
-		const getTweetInTweetDetail = tweetDetail => {
+		const getTweetsInTweetDetail = tweetDetail => {
 			try {
 				return tweetDetail.data.threaded_conversation_with_injections_v2.instructions
 					.filter(instruction => instruction.type === 'TimelineAddEntries')
 					.map(instruction => instruction.entries)
-					.flat()[0]
-					.content.itemContent.tweet_results.result.legacy;
+					.flat()
+					.filter(entry => entry.content.entryType === 'TimelineTimelineItem')
+					.filter(entry => entry.content.itemContent.itemType === 'TimelineTweet')
+					.map(entry => entry.content.itemContent.tweet_results.result.legacy);
 			} catch {
-				return;
+				return [];
 			}
 		};
 
@@ -82,20 +84,19 @@
 				return videos;
 
 			} catch {
-				return;
+				return [];
 			}
 
 		};
 
 		const getVieosInTweetDetail = tweetDetail => {
 
-			const tweet = getTweetInTweetDetail(tweetDetail);
+			const tweets = getTweetsInTweetDetail(tweetDetail);
 
-			if ( typeof tweet === 'undefined' ) return;
-
-			if ( ! 'media' in tweet['entities'] ) return;
-
-			const videos = getVideosInTweet(tweet);
+			const videos = tweets
+				.filter(tweet => 'media' in tweet['entities'])
+				.map(tweet => getVideosInTweet(tweet))
+				.flat();
 
 			return videos;
 
